@@ -1108,7 +1108,8 @@ enum XMPPRoomState
 	
 	BOOL isAvailable   = [presenceType isEqualToString:@"available"];
 	BOOL isUnavailable = [presenceType isEqualToString:@"unavailable"];
-	
+    BOOL isError       = [presenceType isEqualToString:@"error"];
+
 	// Server's don't always properly send the statusCodes in every situation.
 	// So we have some extra checks to ensure the boolean variables are correct.
 	
@@ -1144,7 +1145,17 @@ enum XMPPRoomState
 	
 	if (isMyPresence)
 	{
-		if (isAvailable)
+        if (isError) 
+        {
+            if (state & kXMPPRoomStateJoining)
+            {
+                state &= ~kXMPPRoomStateJoining;
+                state |=  kXMPPRoomStateNone;
+
+                [multicastDelegate xmppRoom:self didNotJoin:presence];
+            }
+        }
+		else if (isAvailable)
 		{
 			myRoomJID = from;
 			myNickname = [from resource];
